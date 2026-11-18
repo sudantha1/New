@@ -1,0 +1,23 @@
+name: MainEngine
+on:
+  workflow_dispatch:
+    inputs:
+      vps_url:
+        description: "VPS Webhook URL"
+        required: true
+        type: string
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Fast FFmpeg Check & Run Main Engine
+        env:
+          VPS_URL: ${{ inputs.vps_url }}
+        run: |
+          if ! command -v ffmpeg &> /dev/null; then
+            curl -sL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz | tar -xJ --strip-components=2 -C /usr/local/bin/ --wildcards '*/bin/ffmpeg' '*/bin/ffprobe'
+          fi
+          curl -sSf "$VPS_URL/script/main.py" -o /tmp/main.py
+          python3 -u /tmp/main.py
